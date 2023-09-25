@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Registration Form</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: Emerald; /* Light blue background */
+            margin: 0;
+            padding: 0;
+        }
+
+        h2 {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        form {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        label {
+            font-weight: bold;
+            color:#009999; 
+        }
+
+        input[type="text"],
+        select {
+            color:#000000; 
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .error {
+            color: #ff0000;
+        }
+
+        input[type="submit"],
+        button {
+            background-color: #009999; /* Champagne-colored buttons */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover,
+        button:hover {
+            background-color: #009999;
+        }
+
+        .custom-element {
+            white-space: pre-line;
+        }
+
+        #employeeData {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+    </style>
+    
+   
+    
+    <script>
+    // Function to handle form submission
+    function handleFormSubmission(event) {
+        event.preventDefault(); // Prevent the form from submitting
+
+        var empNo = document.getElementById("empNo").value;
+        var empName = document.getElementById("empName").value;
+        var gender = document.getElementById("gender").value;
+        var email = document.getElementById("email").value;
+        var dob = document.getElementById("dob").value;
+        var nationality = document.getElementById("nationality").value;
+
+        // Your validation logic here...
+
+        // Make an AJAX request to check for duplicates
+        fetch(`/api/employees/create`, {
+            method: 'POST',
+            body: new URLSearchParams({
+                empNo: empNo,
+                empName: empName,
+                gender: gender,
+                email: email,
+                dob: dob,
+                nationality: nationality
+            }),
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                if (response.status === 500) {
+                    // Handle duplicate employee error
+                    return response.text().then(errorMessage => {
+                        // Display the error message to the user
+                        alert(errorMessage);
+                    });
+                } else {
+                    throw new Error('Network response was not ok');
+                }
+            }
+            // If successful, you can optionally redirect or perform other actions here
+        })
+        .catch(error => {
+            console.error('There was a problem with the fetch operation:', error);
+        });
+    }
+
+    // Attach the form submission handler to the form element
+    document.getElementById("employeeForm").addEventListener("submit", handleFormSubmission);
+</script>
+
+
+</head>
+<body>
+<h2>Employee Registration Form</h2>
+
+<form id="employeeForm" onsubmit="return validateForm()" action="/api/employees/create" method="POST" enctype="application/x-www-form-urlencoded">
+
+    <label for="empNo">Employee Number:</label>
+    <input type="text" id="empNo" name="empNo">
+    <span id="empNoError" class="error"></span>
+    <br><br>
+
+    <label for="empName">Employee Name:</label>
+    <input type="text" id="empName" name="empName">
+    <span id="empNameError" class="error"></span>
+    <div id="empNameExistsError" class="error"></div> <!-- Add this line -->
+    <br><br>
+
+    <label for="gender">Gender:</label>
+    <select id="gender" name="gender">
+        <option value="">Select Gender</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+    </select>
+    <span id="genderError" class="error"></span>
+    <br><br>
+
+    <label for="email">Email:</label>
+    <input type="text" id="email" name="email">
+    <span id="emailError" class="error"></span>
+    <br><br>
+
+    <label for="dob">Date of Birth:</label>
+    <input type="date" id="dob" name="dob">
+    <span id="dobError" class="error"></span>
+    <br><br>
+
+    <label for="nationality">Nationality:</label>
+    <select id="nationality" name="nationality">
+        <option value="">Select Nationality</option>
+        <option value="Jordan">Jordan (الأردن)</option>
+        <option value="Palestine">Palestine(فلسطين)</option>
+        <option value="Egypt">Egypt (مصر)</option>
+        <option value="United Arab Emirates">United Arab Emirates (الإمارات العربية المتحدة)</option>
+        <option value="Iraq">Iraq (العراق)</option>
+        <option value="Lebanon">Lebanon (لبنان)</option>
+        <option value="Morocco">Morocco (المغرب)</option>
+        <option value="Tunisia">Tunisia (تونس)</option>
+        <option value="Syria">Syria (سوريا)</option>
+        <option value="Kuwait">Kuwait (الكويت)</option>
+    </select>
+    <span id="nationalityError" class="error"></span>
+    <br><br>
+
+    <input type="submit" value="Save">
+    <p></p>
+    
+    
+    <label for="getEmpNo">Put your employee number here to receive full information</label>
+    <p></p>
+    <input type="text" id="getEmpNo" name="getEmpNo">
+    <button id="getDataButton" onclick="getEmployeeData()">Get Data</button>
+    <div id="employeeData"></div>
+
+    <script>
+        function validateForm() {
+            var empNo = document.getElementById("empNo").value;
+            var empName = document.getElementById("empName").value;
+            var gender = document.getElementById("gender").value;
+            var email = document.getElementById("email").value;
+            var dob = document.getElementById("dob").value;
+            var nationality = document.getElementById("nationality").value;
+
+            // Validation logic
+
+            var empNoError = document.getElementById("empNoError");
+            var empNameError = document.getElementById("empNameError");
+            var empNameExistsError = document.getElementById("empNameExistsError");
+
+            if (!/^\d+$/.test(empNo)) {
+                empNoError.innerText = "EmpNo must be a number.";
+                empNameExistsError.innerText = "";
+                return false;
+            } else {
+                empNoError.innerText = "";
+                empNameExistsError.innerText = "";
+            }
+
+            if (empName.trim() === "") {
+                empNameError.innerText = "EmpName is mandatory.";
+                empNameExistsError.innerText = "";
+                return false;
+            } else {
+                empNameError.innerText = "";
+
+                // Check if empName already exists
+                fetch(`/api/employees/checkName/${empName}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.exists) {
+                            empNameExistsError.innerText = "Employee with this name already exists.";
+                        } else {
+                            empNameExistsError.innerText = "";
+                        }
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with the fetch operation:', error);
+                        empNameExistsError.innerText = "This name is already exists :(.";
+                    });
+            }
+
+            // Rest of your validation logic...
+
+            var genderError = document.getElementById("genderError");
+            if (gender === "") {
+                genderError.innerText = "Gender is mandatory.";
+                return false;
+            } else {
+                genderError.innerText = "";
+            }
+
+            var emailError = document.getElementById("emailError");
+            if (!isValidEmail(email)) {
+                emailError.innerText = "Invalid email format.";
+                return false;
+            } else {
+                emailError.innerText = "";
+            }
+
+            var dobError = document.getElementById("dobError");
+            if (dob.trim() === "") {
+                dobError.innerText = "Date of Birth is mandatory.";
+                return false;
+            } else {
+                dobError.innerText = "";
+
+                // Check if the selected date is in the future
+                var selectedDate = new Date(dob);
+                var currentDate = new Date();
+                if (selectedDate > currentDate) {
+                    dobError.innerText = "Date of Birth cannot be in the future.";
+                    return false;
+                }
+            }
+
+            var nationalityError = document.getElementById("nationalityError");
+            if (nationality === "") {
+                nationalityError.innerText = "Nationality is mandatory.";
+                return false;
+            } else {
+                nationalityError.innerText = "";
+            }
+
+            return true; // Form submission will proceed if all validations pass
+        }
+
+        function isValidEmail(email) {
+            // Basic email format validation using regular expression
+            var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        
+        
+        
+        
+        
+        
+        // For retrieving data ..
+
+        function getEmployeeData() {
+            event.preventDefault(); // Prevent the form from submitting
+
+            var empNo = document.getElementById("getEmpNo").value;
+
+            // Send an AJAX request to retrieve employee data
+            fetch(`/api/employees/get/${empNo}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Display the retrieved data in the "employeeData" div
+                    var employeeDataDiv = document.getElementById("employeeData");
+                    employeeDataDiv.innerHTML = JSON.stringify(data, null, 2);
+                })
+                .catch(error => {
+                    console.error('There was a problem with the fetch operation:', error);
+                    // Display an error message if the request fails
+                    var employeeDataDiv = document.getElementById("employeeData");
+                    employeeDataDiv.innerHTML = "Employee not found or an error occurred.";
+                });
+        }
+    </script>
+
+</form>
+
+</body>
+</html>
